@@ -8,6 +8,9 @@ typedef struct tvm_htable_node_s
 {
 	char* key;
 	int value;
+	void * complexValue;
+	int complexValueLen;
+	unsigned char complexValueType;
 } tvm_htable_node_t;
 
 typedef struct tvm_htab_s
@@ -18,10 +21,10 @@ typedef struct tvm_htab_s
 
 tvm_htab_t* create_htab();
 void destroy_htab(tvm_htab_t* htab);
-
-int htab_add(tvm_htab_t* htab, const char* key, int value);
+int htab_add(tvm_htab_t* htab, const char* k, int v);
+int htab_add_complex_value(tvm_htab_t* htab, const char* k, int v, void * cv, int cvLen, unsigned char cvType);
 int htab_find(tvm_htab_t* htab, const char* key);
-
+void * htab_find_complex_value(tvm_htab_t* htab, const char* key, int * cvLen, unsigned char * cvType);
 unsigned int htab_hash(const char* key);
 
 #endif
