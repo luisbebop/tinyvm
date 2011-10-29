@@ -66,7 +66,8 @@ void lex(tvm_lexer_t* lexer, char* source)
 			lexer->tokens[i][j] = (char*)calloc(1, (strlen(pToken) + 1));
 			strcpy(lexer->tokens[i][j], pToken);
 
-			pToken = strtok(NULL, " 	,");
+			if(strcmp(pToken,".string") == 0) pToken = strtok(NULL, "\"");
+			else pToken = strtok(NULL, "     ,");
 		}
 	}
 
