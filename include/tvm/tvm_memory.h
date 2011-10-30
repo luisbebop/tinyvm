@@ -1,6 +1,7 @@
 #ifndef TVM_MEMORY_H_
 #define TVM_MEMORY_H_
 
+#include "tvm_hashtab.h"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -10,8 +11,7 @@ typedef union
 {
 	int32_t i32;
 	int32_t* i32_ptr;
-
-	union
+ 	union
 	{
 		int16_t h;
 		int16_t l;
@@ -34,7 +34,9 @@ typedef struct
 
 	void* mem_space;
 	int mem_space_size;
-
+	
+	tvm_htab_t* address_type_htab; //limited to 4096 variables. :( I have to think in other approach
+	int int_type;
 	tvm_register_t* registers;
 } tvm_memory_t;
 

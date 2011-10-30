@@ -11,17 +11,12 @@
 typedef struct tvm_program_s
 {
 	int start;
-
 	int num_instructions;
-        int* instr;
-
-        int*** args;
-
+	int* instr;
+	int*** args;
 	int** values;
 	int num_values;
-
 	tvm_htab_t* label_htab;
-
 } tvm_program_t;
 
 /* Create and initialize an empty program object */
