@@ -34,6 +34,38 @@ void tvm_run(tvm_t* vm)
 	for(;vm->pProgram->instr[*instr_idx] != -0x1; ++(*instr_idx)) tvm_step(vm, instr_idx);
 }
 
+void tvm_prn(tvm_t* vm, int * arg)
+{
+	char buf[50];
+	char prn_buf[1024];
+	int * arg_type;
+	int type = 0;
+	void * complexValue;
+	int complexValueLen;
+	
+	sprintf(buf,"%p", arg);
+	printf("looking for [%s]\n", buf);
+	printf("prn arg0 address [%p]\n",arg);
+	arg_type = htab_find_pointer(vm->pMemory->address_type_htab, buf);
+	if (arg_type) type = *arg_type;
+	else type = 0;
+		
+	// is not an address to the hashtable. It is a integer
+	if(type == 0) 
+	{
+		printf("%i\n", *arg); 
+	}
+	else 
+	{
+		memset(prn_buf,0,sizeof(prn_buf));
+		complexValue = vm->pProgram->label_htab->nodes[*arg]->complexValue;
+		complexValueLen = vm->pProgram->label_htab->nodes[*arg]->complexValueLen;
+		strncpy(prn_buf,(const char *)complexValue, complexValueLen);
+		//is an address in the hashtable
+		printf("%s\n", prn_buf);
+	}
+}
+
 void tvm_step(tvm_t* vm, int* instr_idx)
 {
 	int *arg0 = vm->pProgram->args[*instr_idx][0], *arg1 = vm->pProgram->args[*instr_idx][1];
@@ -102,6 +134,6 @@ void tvm_step(tvm_t* vm, int* instr_idx)
 /* jge   */	case 0x1C: if(vm->pMemory->FLAGS   & 0x3)  *instr_idx = *arg0 - 1; break;
 /* jl    */	case 0x1D: if(!(vm->pMemory->FLAGS & 0x3)) *instr_idx = *arg0 - 1; break;
 /* jle   */	case 0x1E: if(!(vm->pMemory->FLAGS & 0x2)) *instr_idx = *arg0 - 1; break;
-/* prn   */	case 0x1F: printf("%i\n", *arg0);
+/* prn   */	case 0x1F: tvm_prn(vm, arg0);
 	};
 }
