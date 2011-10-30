@@ -1,0 +1,28 @@
+.LC0:
+	.string "equal"
+.LC1:
+	.string "notequal"
+.LC2:
+	.string "a"
+.LC3:
+	.string "a"
+
+notequal:
+	prn .LC1
+	call leave
+	
+equal:
+	prn .LC0
+	call leave
+
+start:
+	push .LC2
+	push .LC3
+	pop [0]
+	pop [1]
+	cmp [0], [1]
+	je equal
+	jne notequal
+	
+leave:
+

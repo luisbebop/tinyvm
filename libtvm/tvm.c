@@ -152,6 +152,48 @@ void tvm_add(tvm_t* vm, int * arg0, int * arg1)
 	}
 }
 
+void tvm_cmp(tvm_t* vm, int * arg0, int * arg1)
+{
+	int * arg_type0;
+	int * arg_type1;
+	void * complexValue;
+	int complexValueLen;
+	char cmp_buf1[1024];
+	char cmp_buf2[1024];
+	
+	arg_type0 = tvm_lookup_arg_type(vm, arg0);
+	arg_type1 = tvm_lookup_arg_type(vm, arg1);
+	
+	if(*arg_type0 != *arg_type1)
+	{
+		printf("Impossible to compare different types.\n");
+		return;
+	}
+	
+	// comparing integers
+	if(*arg_type0 == 0)
+	{
+		vm->pMemory->FLAGS = ((*arg0 == *arg1) | (*arg0 > *arg1) << 1);
+	}
+	
+	//comparing strings
+	if(*arg_type0 == 1)
+	{
+		memset(cmp_buf1,0,sizeof(cmp_buf1));
+		complexValue = vm->pProgram->label_htab->nodes[*arg0]->complexValue;
+		complexValueLen = vm->pProgram->label_htab->nodes[*arg0]->complexValueLen;
+		strncpy(cmp_buf1,(const char *)complexValue, complexValueLen);
+		
+		memset(cmp_buf2,0,sizeof(cmp_buf2));
+		complexValue = vm->pProgram->label_htab->nodes[*arg1]->complexValue;
+		complexValueLen = vm->pProgram->label_htab->nodes[*arg1]->complexValueLen;
+		strncpy(cmp_buf2,(const char *)complexValue, complexValueLen);
+		
+		if(strcmp(cmp_buf1,cmp_buf2) == 0) vm->pMemory->FLAGS = 0x1;
+		else vm->pMemory->FLAGS = 0x2;
+	}
+}
+
 void tvm_step(tvm_t* vm, int* instr_idx)
 {
 	int *arg0 = vm->pProgram->args[*instr_idx][0], *arg1 = vm->pProgram->args[*instr_idx][1];
@@ -180,7 +222,7 @@ void tvm_step(tvm_t* vm, int* instr_idx)
 /* and   */	case 0x12: *arg0 &= *arg1;   break;
 /* shl   */	case 0x13: *arg0 <<= *arg1;  break;
 /* shr   */	case 0x14: *arg0 >>= *arg1;  break;
-/* cmp   */	case 0x15: vm->pMemory->FLAGS = ((*arg0 == *arg1) | (*arg0 > *arg1) << 1); break;
+/* cmp   */	case 0x15: tvm_cmp(vm,arg0,arg1); break;
 /* call	 */	case 0x17: stack_push(vm->pMemory, instr_idx);
 /* jmp	 */	case 0x16: *instr_idx = *arg0 - 1; break;
 /* ret   */	case 0x18: stack_pop(vm->pMemory, instr_idx); break;
