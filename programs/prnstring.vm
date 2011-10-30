@@ -1,0 +1,15 @@
+.LC0:
+        .string "hello world"
+.LC1:
+		.string "second string ..."
+
+start:
+        push .LC0
+		pop [0]
+        prn [0]
+		push 11111
+		pop [0]
+		prn [0]
+		push .LC1
+		pop [0]
+		prn [0]
