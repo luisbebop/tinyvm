@@ -24,6 +24,7 @@ void destroy_htab(tvm_htab_t* htab);
 int htab_add(tvm_htab_t* htab, const char* k, int v);
 int htab_add_complex_value(tvm_htab_t* htab, const char* k, int v, void * cv, int cvLen, unsigned char cvType);
 int htab_find(tvm_htab_t* htab, const char* key);
+int * htab_find_pointer(tvm_htab_t* htab, const char* key);
 void * htab_find_complex_value(tvm_htab_t* htab, const char* key, int * cvLen, unsigned char * cvType);
 unsigned int htab_hash(const char* key);
 

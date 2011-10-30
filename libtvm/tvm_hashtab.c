@@ -33,10 +33,14 @@ int htab_add_complex_value(tvm_htab_t* htab, const char* k, int v, void * cv, in
 {
 	int hash = htab_hash(k);
 
-	/* If the node is not already occupied, allocate space, and copy the key/value pair. */
-	if(htab->nodes[hash] == NULL) htab->nodes[hash] = calloc(1, sizeof(tvm_htable_node_t));
-	else return 1;
-
+	/* If the node is already occupied, copy value. */
+	if(htab->nodes[hash] != NULL) 
+	{
+		htab->nodes[hash]->value = v;
+		return 1;
+	}
+	
+	htab->nodes[hash] = calloc(1, sizeof(tvm_htable_node_t));
 	htab->nodes[hash]->key = (char*)malloc(sizeof(char) * (strlen(k) + 1));
 	
 	if (cv != NULL)
@@ -65,6 +69,14 @@ int htab_find(tvm_htab_t* htab, const char* key)
 
 	if(htab->nodes[hash] != NULL) return htab->nodes[hash]->value;
 	else return -1;
+}
+
+int * htab_find_pointer(tvm_htab_t* htab, const char* key)
+{
+	int hash = htab_hash(key);
+
+	if(htab->nodes[hash] != NULL) return &htab->nodes[hash]->value;
+	else return NULL;
 }
 
 void * htab_find_complex_value(tvm_htab_t* htab, const char* key, int * cvLen, unsigned char * cvType)
