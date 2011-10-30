@@ -37,14 +37,45 @@ void tvm_run(tvm_t* vm)
 void tvm_step(tvm_t* vm, int* instr_idx)
 {
 	int *arg0 = vm->pProgram->args[*instr_idx][0], *arg1 = vm->pProgram->args[*instr_idx][1];
-
+	int *arg_type;
+	char pointer_address[50];
+	
 	switch(vm->pProgram->instr[*instr_idx])
 	{
 /* nop   */	case 0x0:  break;
 /* int   */	case 0x1:  /* unimplemented */ break;
 /* mov   */	case 0x2:  *arg0 = *arg1; break;
-/* push  */	case 0x3:  stack_push(vm->pMemory, arg0); break;
-/* pop   */	case 0x4:  stack_pop(vm->pMemory, arg0); break;
+/* push  */	case 0x3:
+  				// looking for address type
+				memset(pointer_address,0,sizeof(pointer_address));
+				sprintf(pointer_address,"%p",arg0);
+				arg_type = htab_find_pointer(vm->pMemory->address_type_htab, pointer_address);
+				if (arg_type == NULL) arg_type = &vm->pMemory->int_type;
+				
+				//push argument
+				stack_push(vm->pMemory, arg0);
+				printf("push arg0 [%i]\n",*arg0);
+				
+				//push argument type
+				stack_push(vm->pMemory,arg_type);
+				printf("push arg_type [%i]\n",*arg_type);
+				break;
+				
+/* pop   */	case 0x4:
+				//pop argument type
+				stack_pop(vm->pMemory, arg_type);  
+				printf("pop arg_type [%i]\n",*arg_type);
+				
+				//pop argument
+				stack_pop(vm->pMemory, arg0); 
+				printf("pop arg0 [%i]\n",*arg0);
+
+				//set address argument type
+				memset(pointer_address,0,sizeof(pointer_address));
+				sprintf(pointer_address,"%p",arg0);
+				htab_add(vm->pMemory->address_type_htab, pointer_address, *arg_type);				
+				break;
+				
 /* pushf */	case 0x5:  stack_push(vm->pMemory, &vm->pMemory->FLAGS); break;
 /* popf  */	case 0x6:  stack_pop(vm->pMemory, arg0); break;
 /* inc   */	case 0x7:  ++(*arg0); break;
