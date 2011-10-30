@@ -86,7 +86,7 @@ int interpret_program(tvm_program_t* p, char* filename, tvm_memory_t* pMemory)
 
 int parse_labels(tvm_program_t* p, const char*** tokens)
 {
-	int i, num_instructions = 0;
+	int i, num_instructions = 0, address_complex_value = 0;
 	for(i = 0; tokens[i]; i++)
 	{
 		int token_idx, valid_instruction = 0;
@@ -118,8 +118,17 @@ int parse_labels(tvm_program_t* p, const char*** tokens)
 				}
 				else
 				{
-					/* Add that fucker to the hash table with the corresponding instruction index */
-					htab_add(p->label_htab, tokens[i][token_idx], num_instructions);
+					/* Check string */
+					if (strncmp(tokens[i][token_idx],".LC",3) == 0)
+					{
+						address_complex_value = htab_hash(tokens[i][token_idx]);
+						htab_add_complex_value(p->label_htab, tokens[i][token_idx], address_complex_value, (void *)tokens[i+1][token_idx+1], strlen(tokens[i+1][token_idx+1]), 0x00);
+					}
+					else
+					{
+						/* Add that fucker to the hash table with the corresponding instruction index */
+						htab_add(p->label_htab, tokens[i][token_idx], num_instructions);
+					}
 				}
 
 				continue;
@@ -135,6 +144,8 @@ int parse_labels(tvm_program_t* p, const char*** tokens)
 int parse_instructions(tvm_program_t* p, const char*** tokens, tvm_memory_t* pMemory)
 {
 	int line_idx;
+	char pointer_address[50];
+	
 	for(line_idx = 0; tokens[line_idx]; line_idx++)
 	{
 		p->instr = (int*)realloc(p->instr, sizeof(int) * (line_idx + 2));
@@ -172,6 +183,7 @@ int parse_instructions(tvm_program_t* p, const char*** tokens, tvm_memory_t* pMe
 					if(pRegister)
 					{
 						p->args[num_instr][i - token_idx] = pRegister;
+						printf("parse_instructions: register address = %p\n", p->args[num_instr][i - token_idx]);
 						continue;
 					}
 
@@ -183,7 +195,7 @@ int parse_instructions(tvm_program_t* p, const char*** tokens, tvm_memory_t* pMe
 						{
 							*end_symbol = 0;
 							p->args[num_instr][i - token_idx] = &((int*)pMemory->mem_space)[tvm_parse_value(tokens[line_idx][i] + 1)];
-
+							printf("parse_instructions: [] address = %p\n", p->args[num_instr][i - token_idx]);
 							continue;
 						}
 					}
@@ -192,13 +204,23 @@ int parse_instructions(tvm_program_t* p, const char*** tokens, tvm_memory_t* pMe
 					instr_idx = htab_find(p->label_htab, tokens[line_idx][i]);
 
 					if(instr_idx >= 0)
-					{
+					{	
 						p->args[num_instr][i - token_idx] = tvm_add_value(p, instr_idx);
+						//add the type of the variable address: integer or complex type
+						if (strncmp(tokens[line_idx][i],".LC",3) == 0) 
+						{
+							//add type of pointer in a lookup table ...
+							printf("parse_instructions: complex type address = %p\n", p->args[num_instr][i - token_idx]);
+							memset(pointer_address,0,sizeof(pointer_address));
+							sprintf(pointer_address,"%p",p->args[num_instr][i - token_idx]);
+							htab_add(pMemory->address_type_htab, pointer_address, 1);	
+						}
 						continue;
 					}
 
 					/* Fuck it, parse it as a value */
 					p->args[num_instr][i - token_idx] = tvm_add_value(p, tvm_parse_value(tokens[line_idx][i]));
+					printf("parse_instructions: value address = %p\n", p->args[num_instr][i - token_idx]);
 				}
 			}
 		}
