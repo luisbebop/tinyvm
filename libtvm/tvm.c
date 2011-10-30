@@ -34,24 +34,42 @@ void tvm_run(tvm_t* vm)
 	for(;vm->pProgram->instr[*instr_idx] != -0x1; ++(*instr_idx)) tvm_step(vm, instr_idx);
 }
 
+int * tvm_lookup_arg_type(tvm_t* vm, int * arg)
+{
+	char pointer_address[50];
+	int * arg_type;
+		
+	memset(pointer_address,0,sizeof(pointer_address));
+	sprintf(pointer_address,"%p", arg);
+	arg_type = htab_find_pointer(vm->pMemory->address_type_htab, pointer_address);
+	if (arg_type == NULL) 
+	{
+		htab_add(vm->pMemory->address_type_htab, pointer_address, 0);
+		arg_type = htab_find_pointer(vm->pMemory->address_type_htab, pointer_address);
+	}
+		
+	return arg_type;
+}
+
+void tvm_set_arg_type(tvm_t* vm, int * arg, int type)
+{
+	char pointer_address[50];
+	
+	memset(pointer_address,0,sizeof(pointer_address));
+	sprintf(pointer_address,"%p",arg);
+	htab_add(vm->pMemory->address_type_htab, pointer_address, type);
+}
+
 void tvm_prn(tvm_t* vm, int * arg)
 {
-	char buf[50];
 	char prn_buf[1024];
-	int * arg_type;
-	int type = 0;
+	int * type;
 	void * complexValue;
 	int complexValueLen;
-	
-	sprintf(buf,"%p", arg);
-	printf("looking for [%s]\n", buf);
-	printf("prn arg0 address [%p]\n",arg);
-	arg_type = htab_find_pointer(vm->pMemory->address_type_htab, buf);
-	if (arg_type) type = *arg_type;
-	else type = 0;
-		
+
+	type = tvm_lookup_arg_type(vm, arg);
 	// is not an address to the hashtable. It is a integer
-	if(type == 0) 
+	if(*type == 0) 
 	{
 		printf("%i\n", *arg); 
 	}
@@ -69,45 +87,29 @@ void tvm_prn(tvm_t* vm, int * arg)
 void tvm_step(tvm_t* vm, int* instr_idx)
 {
 	int *arg0 = vm->pProgram->args[*instr_idx][0], *arg1 = vm->pProgram->args[*instr_idx][1];
-	int *arg_type;
-	char pointer_address[50];
+	int arg_type0 = 0;
 	
 	switch(vm->pProgram->instr[*instr_idx])
 	{
 /* nop   */	case 0x0:  break;
 /* int   */	case 0x1:  /* unimplemented */ break;
 /* mov   */	case 0x2:  *arg0 = *arg1; break;
-/* push  */	case 0x3:
-  				// looking for address type
-				memset(pointer_address,0,sizeof(pointer_address));
-				sprintf(pointer_address,"%p",arg0);
-				arg_type = htab_find_pointer(vm->pMemory->address_type_htab, pointer_address);
-				if (arg_type == NULL) arg_type = &vm->pMemory->int_type;
-				
+/* push  */	case 0x3:  		
 				//push argument
 				stack_push(vm->pMemory, arg0);
 				printf("push arg0 [%i]\n",*arg0);
-				
 				//push argument type
-				stack_push(vm->pMemory,arg_type);
-				printf("push arg_type [%i]\n",*arg_type);
+				stack_push(vm->pMemory,tvm_lookup_arg_type(vm, arg0));
 				break;
-				
 /* pop   */	case 0x4:
 				//pop argument type
-				stack_pop(vm->pMemory, arg_type);  
-				printf("pop arg_type [%i]\n",*arg_type);
-				
+				stack_pop(vm->pMemory, &arg_type0);
+				printf("pop arg_type [%i]\n",arg_type0);
 				//pop argument
 				stack_pop(vm->pMemory, arg0); 
 				printf("pop arg0 [%i]\n",*arg0);
-
-				//set address argument type
-				memset(pointer_address,0,sizeof(pointer_address));
-				sprintf(pointer_address,"%p",arg0);
-				htab_add(vm->pMemory->address_type_htab, pointer_address, *arg_type);				
+				tvm_set_arg_type(vm, arg0, arg_type0);
 				break;
-				
 /* pushf */	case 0x5:  stack_push(vm->pMemory, &vm->pMemory->FLAGS); break;
 /* popf  */	case 0x6:  stack_pop(vm->pMemory, arg0); break;
 /* inc   */	case 0x7:  ++(*arg0); break;

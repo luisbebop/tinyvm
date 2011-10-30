@@ -14,7 +14,6 @@ tvm_memory_t* create_memory(size_t size)
 	m->mem_space_size = size;
 	m->mem_space = (int*)calloc(size, 1);
 	m->address_type_htab = create_htab();
-	m->int_type = 0;
 	
 	return m;
 }

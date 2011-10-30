@@ -36,7 +36,6 @@ typedef struct
 	int mem_space_size;
 	
 	tvm_htab_t* address_type_htab; //limited to 4096 variables. :( I have to think in other approach
-	int int_type;
 	tvm_register_t* registers;
 } tvm_memory_t;
 
