@@ -183,7 +183,6 @@ int parse_instructions(tvm_program_t* p, const char*** tokens, tvm_memory_t* pMe
 					if(pRegister)
 					{
 						p->args[num_instr][i - token_idx] = pRegister;
-						printf("parse_instructions: register address = %p\n", p->args[num_instr][i - token_idx]);
 						continue;
 					}
 
@@ -195,7 +194,6 @@ int parse_instructions(tvm_program_t* p, const char*** tokens, tvm_memory_t* pMe
 						{
 							*end_symbol = 0;
 							p->args[num_instr][i - token_idx] = &((int*)pMemory->mem_space)[tvm_parse_value(tokens[line_idx][i] + 1)];
-							printf("parse_instructions: [] address = %p\n", p->args[num_instr][i - token_idx]);
 							continue;
 						}
 					}
@@ -210,7 +208,6 @@ int parse_instructions(tvm_program_t* p, const char*** tokens, tvm_memory_t* pMe
 						if (strncmp(tokens[line_idx][i],".LC",3) == 0) 
 						{
 							//add type of pointer in a lookup table ...
-							printf("parse_instructions: complex type address = %p\n", p->args[num_instr][i - token_idx]);
 							memset(pointer_address,0,sizeof(pointer_address));
 							sprintf(pointer_address,"%p",p->args[num_instr][i - token_idx]);
 							htab_add(pMemory->address_type_htab, pointer_address, 1);	
@@ -220,7 +217,6 @@ int parse_instructions(tvm_program_t* p, const char*** tokens, tvm_memory_t* pMe
 
 					/* Fuck it, parse it as a value */
 					p->args[num_instr][i - token_idx] = tvm_add_value(p, tvm_parse_value(tokens[line_idx][i]));
-					printf("parse_instructions: value address = %p\n", p->args[num_instr][i - token_idx]);
 				}
 			}
 		}

@@ -162,22 +162,8 @@ void tvm_step(tvm_t* vm, int* instr_idx)
 /* nop   */	case 0x0:  break;
 /* int   */	case 0x1:  /* unimplemented */ break;
 /* mov   */	case 0x2:  *arg0 = *arg1; break;
-/* push  */	case 0x3:  		
-				//push argument
-				stack_push(vm->pMemory, arg0);
-				printf("push arg0 [%i]\n",*arg0);
-				//push argument type
-				stack_push(vm->pMemory,tvm_lookup_arg_type(vm, arg0));
-				break;
-/* pop   */	case 0x4:
-				//pop argument type
-				stack_pop(vm->pMemory, &arg_type0);
-				printf("pop arg_type [%i]\n",arg_type0);
-				//pop argument
-				stack_pop(vm->pMemory, arg0); 
-				printf("pop arg0 [%i]\n",*arg0);
-				tvm_set_arg_type(vm, arg0, arg_type0);
-				break;
+/* push  */	case 0x3:  stack_push(vm->pMemory, arg0); stack_push(vm->pMemory,tvm_lookup_arg_type(vm, arg0)); break;
+/* pop   */	case 0x4:  stack_pop(vm->pMemory, &arg_type0); stack_pop(vm->pMemory, arg0); tvm_set_arg_type(vm, arg0, arg_type0); break;
 /* pushf */	case 0x5:  stack_push(vm->pMemory, &vm->pMemory->FLAGS); break;
 /* popf  */	case 0x6:  stack_pop(vm->pMemory, arg0); break;
 /* inc   */	case 0x7:  ++(*arg0); break;
