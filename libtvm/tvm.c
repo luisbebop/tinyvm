@@ -84,6 +84,74 @@ void tvm_prn(tvm_t* vm, int * arg)
 	}
 }
 
+void tvm_add(tvm_t* vm, int * arg0, int * arg1)
+{
+	int * arg_type0;
+	int * arg_type1;
+	void * complexValue;
+	int complexValueLen;
+	char add_buf1[1024];
+	char add_buf2[1024];
+	
+	arg_type0 = tvm_lookup_arg_type(vm, arg0);
+	arg_type1 = tvm_lookup_arg_type(vm, arg1);
+	
+	// parse complex values
+	if (*arg_type0 == 1)
+	{
+		memset(add_buf1,0,sizeof(add_buf1));
+		complexValue = vm->pProgram->label_htab->nodes[*arg0]->complexValue;
+		complexValueLen = vm->pProgram->label_htab->nodes[*arg0]->complexValueLen;
+		strncpy(add_buf1,(const char *)complexValue, complexValueLen);
+	}
+	
+	if (*arg_type1 == 1)
+	{
+		memset(add_buf2,0,sizeof(add_buf2));
+		complexValue = vm->pProgram->label_htab->nodes[*arg1]->complexValue;
+		complexValueLen = vm->pProgram->label_htab->nodes[*arg1]->complexValueLen;
+		strncpy(add_buf2,(const char *)complexValue, complexValueLen);
+	}
+	
+	//first and second arg are int
+	if (*arg_type0 == 0 && *arg_type1 == 0)
+	{
+		*arg0 += *arg1; 
+	}
+	
+	//first arg is int and second arg is a complex value
+	if(*arg_type0 == 0 && *arg_type1 == 1)
+	{
+		*arg0 += atoi(add_buf2);
+	}
+	
+	//first and second arg are complex value
+	if (*arg_type0 == 1 && *arg_type1 == 1)
+	{
+		strcat(add_buf1,add_buf2);
+		
+		//clean the old memory in the hash table
+		free(vm->pProgram->label_htab->nodes[*arg0]->complexValue);
+		vm->pProgram->label_htab->nodes[*arg0]->complexValue = malloc(strlen(add_buf1));
+		vm->pProgram->label_htab->nodes[*arg0]->complexValueLen = strlen(add_buf1);
+		memcpy(vm->pProgram->label_htab->nodes[*arg0]->complexValue, (void*)add_buf1, strlen(add_buf1));	
+	}
+	
+	//first arg is a complex value and second arg is a int
+	if (*arg_type0 == 1 && *arg_type1 == 0)
+	{
+		memset(add_buf2,0,sizeof(add_buf2));
+		sprintf(add_buf2,"%i", *arg1);
+		strcat(add_buf1,add_buf2);
+		
+		//clean the old memory in the hash table
+		free(vm->pProgram->label_htab->nodes[*arg0]->complexValue);
+		vm->pProgram->label_htab->nodes[*arg0]->complexValue = malloc(strlen(add_buf1));
+		vm->pProgram->label_htab->nodes[*arg0]->complexValueLen = strlen(add_buf1);
+		memcpy(vm->pProgram->label_htab->nodes[*arg0]->complexValue, (void*)add_buf1, strlen(add_buf1));
+	}
+}
+
 void tvm_step(tvm_t* vm, int* instr_idx)
 {
 	int *arg0 = vm->pProgram->args[*instr_idx][0], *arg1 = vm->pProgram->args[*instr_idx][1];
@@ -114,7 +182,7 @@ void tvm_step(tvm_t* vm, int* instr_idx)
 /* popf  */	case 0x6:  stack_pop(vm->pMemory, arg0); break;
 /* inc   */	case 0x7:  ++(*arg0); break;
 /* dec   */	case 0x8:  --(*arg0); break;
-/* add   */	case 0x9:  *arg0 += *arg1; break;
+/* add   */	case 0x9: tvm_add(vm, arg0, arg1); break;
 /* sub   */	case 0xA:  *arg0 -= *arg1; break;
 /* mul   */	case 0xB:  *arg0 *= *arg1; break;
 /* div   */	case 0xC:  *arg0 /= *arg1; break;

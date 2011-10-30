@@ -1,0 +1,20 @@
+.LC0:
+.string "hello "
+.LC1:
+.string "world"
+push .LC1
+pop [3]
+push .LC0
+pop [2]
+push [2]
+push [3]
+pop ebx
+pop eax
+prn ebx
+prn eax
+add eax, ebx
+push eax
+pop eax
+prn eax
+jmp leave
+leave:
