@@ -1,0 +1,31 @@
+.LC0:
+	.string "Luis"
+.LC1:
+	.string "hello, "
+.LC2:
+	.string "debug"
+say_hello:
+	push ebp
+	mov ebp, esp
+	mov [20002], [0]
+	push .LC1
+	push [20002]
+	pop ebx
+	pop eax
+	add eax, ebx
+	push eax
+	#pop eax
+	prn eax
+	pop eax
+	pop ebp
+	ret
+start:
+	push .LC0
+	pop [0]
+	push [0]
+	call say_hello
+	push eax
+	pop eax
+	pop ebp
+	jmp leave
+leave:
