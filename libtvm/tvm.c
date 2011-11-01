@@ -160,9 +160,9 @@ void tvm_strcat(tvm_t* vm, int * arg0, int * arg1)
 	int complexValueLen;
 	char add_buf1[1024];
 	char add_buf2[1024];
-  char out_buf[1024];
-  char pointer_address[50];
-  int address_complex_value;
+	char out_buf[1024];
+	char pointer_address[50];
+	int address_complex_value;
 	
 	arg_type0 = tvm_lookup_arg_type(vm, arg0);
 	arg_type1 = tvm_lookup_arg_type(vm, arg1);
@@ -194,17 +194,17 @@ void tvm_strcat(tvm_t* vm, int * arg0, int * arg1)
 	//first and second arg are complex value
 	if (*arg_type0 == 1)
 	{
-    memset(out_buf,0,sizeof(out_buf));
-    memset(pointer_address,0,sizeof(pointer_address));
+		memset(out_buf,0,sizeof(out_buf));
+		memset(pointer_address,0,sizeof(pointer_address));
 		strcat(out_buf,add_buf1);
-    strcat(out_buf,add_buf2);
+		strcat(out_buf,add_buf2);
     
-    address_complex_value = htab_hash("strcat");
+		address_complex_value = htab_hash("strcat");
 		htab_add_complex_value(vm->pProgram->label_htab, "strcat", address_complex_value, (void *)out_buf, strlen(out_buf), 0x00);
     
-    vm->pMemory->registers[0x5].i32 = address_complex_value;
+		vm->pMemory->registers[0x5].i32 = address_complex_value;
     
-    //add type of pointer in a lookup table ...
+		//add type of pointer in a lookup table ...
 		memset(pointer_address,0,sizeof(pointer_address));
 		sprintf(pointer_address,"%p",&vm->pMemory->registers[0x5].i32);
 		htab_add(vm->pMemory->address_type_htab, pointer_address, 1);	
