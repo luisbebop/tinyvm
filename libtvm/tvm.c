@@ -152,6 +152,65 @@ void tvm_add(tvm_t* vm, int * arg0, int * arg1)
 	}
 }
 
+void tvm_strcat(tvm_t* vm, int * arg0, int * arg1)
+{
+	int * arg_type0;
+	int * arg_type1;
+	void * complexValue;
+	int complexValueLen;
+	char add_buf1[1024];
+	char add_buf2[1024];
+  char out_buf[1024];
+  char pointer_address[50];
+  int address_complex_value;
+	
+	arg_type0 = tvm_lookup_arg_type(vm, arg0);
+	arg_type1 = tvm_lookup_arg_type(vm, arg1);
+	
+	// parse complex values
+	if (*arg_type0 == 1)
+	{
+		memset(add_buf1,0,sizeof(add_buf1));
+		complexValue = vm->pProgram->label_htab->nodes[*arg0]->complexValue;
+		complexValueLen = vm->pProgram->label_htab->nodes[*arg0]->complexValueLen;
+		strncpy(add_buf1,(const char *)complexValue, complexValueLen);
+	}
+	
+	if (*arg_type1 == 1)
+	{
+		memset(add_buf2,0,sizeof(add_buf2));
+		complexValue = vm->pProgram->label_htab->nodes[*arg1]->complexValue;
+		complexValueLen = vm->pProgram->label_htab->nodes[*arg1]->complexValueLen;
+		strncpy(add_buf2,(const char *)complexValue, complexValueLen);
+	}
+	
+	//first arg is a complex value and second arg is a int
+	if (*arg_type0 == 1 && *arg_type1 == 0)
+	{
+		memset(add_buf2,0,sizeof(add_buf2));
+		sprintf(add_buf2,"%i", *arg1);
+	}
+		
+	//first and second arg are complex value
+	if (*arg_type0 == 1)
+	{
+    memset(out_buf,0,sizeof(out_buf));
+    memset(pointer_address,0,sizeof(pointer_address));
+		strcat(out_buf,add_buf1);
+    strcat(out_buf,add_buf2);
+    
+    address_complex_value = htab_hash("strcat");
+		htab_add_complex_value(vm->pProgram->label_htab, "strcat", address_complex_value, (void *)out_buf, strlen(out_buf), 0x00);
+    
+    vm->pMemory->registers[0x5].i32 = address_complex_value;
+    
+    //add type of pointer in a lookup table ...
+		memset(pointer_address,0,sizeof(pointer_address));
+		sprintf(pointer_address,"%p",&vm->pMemory->registers[0x5].i32);
+		htab_add(vm->pMemory->address_type_htab, pointer_address, 1);	
+	}
+}
+
 void tvm_cmp(tvm_t* vm, int * arg0, int * arg1)
 {
 	int * arg_type0;
@@ -232,6 +291,7 @@ void tvm_step(tvm_t* vm, int* instr_idx)
 /* jge   */	case 0x1C: if(vm->pMemory->FLAGS   & 0x3)  *instr_idx = *arg0 - 1; break;
 /* jl    */	case 0x1D: if(!(vm->pMemory->FLAGS & 0x3)) *instr_idx = *arg0 - 1; break;
 /* jle   */	case 0x1E: if(!(vm->pMemory->FLAGS & 0x2)) *instr_idx = *arg0 - 1; break;
-/* prn   */	case 0x1F: tvm_prn(vm, arg0);
+/* prn   */	case 0x1F: tvm_prn(vm, arg0); break;
+/* strcat*/ case 0x20: tvm_strcat(vm, arg0, arg1);
 	};
 }

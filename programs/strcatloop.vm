@@ -1,0 +1,19 @@
+.LC0:
+  .string "Frame"
+.LC1:
+  .string ".bmp"
+start:
+  push 0
+loop:
+  pop eax
+  inc eax
+  push .LC1
+  push .LC0
+  pop [0]
+  pop [1]
+  strcat [0], eax
+  add edi,[1]
+  prn edi
+  cmp eax,50
+  push eax
+  jle loop

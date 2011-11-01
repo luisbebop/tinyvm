@@ -34,10 +34,20 @@ int htab_add_complex_value(tvm_htab_t* htab, const char* k, int v, void * cv, in
 	int hash = htab_hash(k);
 
 	/* If the node is already occupied, copy value. */
-	if(htab->nodes[hash] != NULL) 
+	if(htab->nodes[hash] != NULL && cv == NULL) 
 	{
 		htab->nodes[hash]->value = v;
 		return 1;
+	}
+	
+	if(htab->nodes[hash] != NULL && cv != NULL) 
+	{
+    free(htab->nodes[hash]->complexValue);
+    htab->nodes[hash]->complexValue = malloc(cvLen);
+		htab->nodes[hash]->complexValueType = cvType;
+		htab->nodes[hash]->complexValueLen = cvLen;
+		memcpy(htab->nodes[hash]->complexValue, cv, cvLen);
+    return 1;
 	}
 	
 	htab->nodes[hash] = calloc(1, sizeof(tvm_htable_node_t));
