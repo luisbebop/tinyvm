@@ -269,7 +269,7 @@ void tvm_step(tvm_t* vm, int* instr_idx)
 /* popf  */	case 0x6:  stack_pop(vm->pMemory, arg0); break;
 /* inc   */	case 0x7:  ++(*arg0); break;
 /* dec   */	case 0x8:  --(*arg0); break;
-/* add   */	case 0x9: tvm_add(vm, arg0, arg1); break;
+/* add   */	case 0x9:  tvm_add(vm, arg0, arg1); break;
 /* sub   */	case 0xA:  *arg0 -= *arg1; break;
 /* mul   */	case 0xB:  *arg0 *= *arg1; break;
 /* div   */	case 0xC:  *arg0 /= *arg1; break;
